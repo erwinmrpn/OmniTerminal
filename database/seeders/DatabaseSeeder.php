@@ -2,24 +2,29 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use App\Models\User;
+use App\Models\Tenant; // <--- INI JANGAN SAMPAI LOLOS
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
-    use WithoutModelEvents;
-
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
-        // User::factory(10)->create();
+        // Pastikan tabel kosong dulu sebelum isi agar tidak bentrok
+        // (Optional tapi membantu kalau running berkali-kali)
+        
+        $tenant = Tenant::create([
+            'name' => 'Tradyn Store',
+            'is_active' => true,
+        ]);
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        User::create([
+            'tenant_id' => $tenant->id,
+            'name' => 'Erwin',
+            'email' => 'erwinkho2@gmail.com',
+            'email_verified_at' => now(),
+            'password' => Hash::make('admin123'), 
         ]);
     }
 }
