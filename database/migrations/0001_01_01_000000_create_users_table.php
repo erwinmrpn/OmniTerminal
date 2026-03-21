@@ -6,21 +6,22 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             
-            // Kolom penghubung ke tabel tenants
-            $table->foreignId('tenant_id')->constrained()->cascadeOnDelete(); 
+            // tenant_id nullable khusus untuk Super Admin (System Owner)
+            $table->foreignId('tenant_id')->nullable()->constrained()->cascadeOnDelete(); 
             
             $table->string('name');
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            
+            // Kolom Role (super_admin, owner, manager, warehouse, marketing)
+            $table->string('role')->default('warehouse'); 
+            
             $table->rememberToken();
             $table->timestamps();
         });
@@ -41,9 +42,6 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('users');

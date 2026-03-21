@@ -2,29 +2,37 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
+use App\Models\Tenant;
 use App\Models\User;
-use App\Models\Tenant; // <--- INI JANGAN SAMPAI LOLOS
+use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        // Pastikan tabel kosong dulu sebelum isi agar tidak bentrok
-        // (Optional tapi membantu kalau running berkali-kali)
-        
+        // 1. Buat Akun Super Admin (Anda sendiri) - Tanpa Tenant
+        User::create([
+            'name' => 'Erwin Super Admin',
+            'email' => 'erwin.admin@omniterminal.com',
+            'password' => Hash::make('admin123'),
+            'role' => 'super_admin',
+            'tenant_id' => null, // Bebas akses ke semua
+        ]);
+
+        // 2. Buat Data Toko Pertama (Klien)
         $tenant = Tenant::create([
-            'name' => 'Tradyn Store',
+            'name' => 'Tradyn Store Official',
             'is_active' => true,
         ]);
 
+        // 3. Buat Akun Owner untuk Toko Tersebut
         User::create([
             'tenant_id' => $tenant->id,
-            'name' => 'Erwin',
-            'email' => 'erwinkho2@gmail.com',
-            'email_verified_at' => now(),
-            'password' => Hash::make('admin123'), 
+            'name' => 'Bos Tradyn',
+            'email' => 'owner@tradyn.com',
+            'password' => Hash::make('admin123'),
+            'role' => 'owner',
         ]);
     }
 }

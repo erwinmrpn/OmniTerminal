@@ -10,18 +10,13 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['tenant_id', 'name', 'email', 'password'])]
+// Tambahkan 'role' ke dalam Fillable
+#[Fillable(['tenant_id', 'name', 'email', 'password', 'role'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
-    /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
@@ -30,12 +25,15 @@ class User extends Authenticatable
         ];
     }
 
-    /**
-     * Relasi ke Tenant
-     * Kita tulis manual di sini agar tidak terjadi infinite loop
-     */
     public function tenant()
     {
         return $this->belongsTo(Tenant::class);
     }
+    
+    // --- HELPER UNTUK CEK ROLE NANTINYA ---
+    public function isSuperAdmin() { return $this->role === 'super_admin'; }
+    public function isOwner() { return $this->role === 'owner'; }
+    public function isManager() { return $this->role === 'manager'; }
+    public function isWarehouse() { return $this->role === 'warehouse'; }
+    public function isMarketing() { return $this->role === 'marketing'; }
 }
