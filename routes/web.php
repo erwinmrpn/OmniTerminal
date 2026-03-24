@@ -3,7 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\StaffController;
-use App\Http\Controllers\SuperAdminController; // [BARU] Import SuperAdminController
+use App\Http\Controllers\SuperAdminController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -37,7 +37,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             'super_admin' => redirect()->route('superadmin.dashboard'),
             'owner'       => redirect()->route('owner.dashboard'),
             'manager'     => redirect()->route('manager.dashboard'),
-            'warehouse'   => redirect()->route('products.index'),
+            'warehouse'   => redirect()->route('warehouse.dashboard'),
             'marketing'   => redirect()->route('marketing.dashboard'),
             'finance'     => redirect()->route('finance.dashboard'),
             default       => abort(403, 'Role tidak dikenali atau tidak memiliki akses.'),
@@ -47,7 +47,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // ----------------------------------------------------------------
     // 2. HALAMAN DASHBOARD & MANAJEMEN SUPER ADMIN
     // ----------------------------------------------------------------
-    // [DIUBAH] Menggunakan controller agar bisa memuat data dari database
     Route::get('/super-admin/dashboard', [SuperAdminController::class, 'dashboard'])->name('superadmin.dashboard');
     Route::put('/super-admin/tenants/{id}', [SuperAdminController::class, 'updateTenant'])->name('superadmin.tenants.update');
     Route::put('/super-admin/users/{id}', [SuperAdminController::class, 'updateUser'])->name('superadmin.users.update');
@@ -71,6 +70,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return Inertia::render('Finance/Dashboard');
     })->name('finance.dashboard');
 
+    Route::get('/warehouse/dashboard', function () {
+        return Inertia::render('Warehouse/Dashboard');
+    })->name('warehouse.dashboard');
+
     // ----------------------------------------------------------------
     // 4. MANAJEMEN STAF (KHUSUS OWNER & MANAGER)
     // ----------------------------------------------------------------
@@ -78,10 +81,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/owner/staff', [StaffController::class, 'store'])->name('owner.staff.store');
 
     // ----------------------------------------------------------------
-    // 5. MASTER DATA PRODUK (WMS Core)
+    // 5. FITUR OPERASIONAL GUDANG (WMS Core)
     // ----------------------------------------------------------------
+    // Produk
     Route::get('/products', [ProductController::class, 'index'])->name('products.index');
     Route::post('/products', [ProductController::class, 'store'])->name('products.store');
+    
+    // [BARU] Rute Placeholder untuk Menu Tambahan WMS (Akan dibuat Controller-nya nanti)
+    Route::get('/warehouse/orders', function () { return "Halaman Daftar Orders"; })->name('warehouse.orders');
+    Route::get('/warehouse/stock', function () { return "Halaman Stok Gudang"; })->name('warehouse.stock');
+    Route::get('/warehouse/history', function () { return "Halaman History Order"; })->name('warehouse.history');
     
 });
 
