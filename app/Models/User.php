@@ -36,4 +36,5 @@ class User extends Authenticatable
     public function isManager() { return $this->role === 'manager'; }
     public function isWarehouse() { return $this->role === 'warehouse'; }
     public function isMarketing() { return $this->role === 'marketing'; }
+    public function isFinance() { return $this->role === 'finance'; } // BARIS BARU DITAMBAHKAN
 }
