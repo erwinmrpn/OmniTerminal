@@ -22,3 +22,6 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Claude Code worktrees (folder kerja internal Claude, tidak perlu di-commit)
+.claude/worktrees/
