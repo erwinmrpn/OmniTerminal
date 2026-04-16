@@ -13,8 +13,8 @@ class DatabaseSeeder extends Seeder
     {
         // 1. Buat Akun Super Admin (Anda sendiri) - Tanpa Tenant
         User::create([
-            'name' => 'Erwin Super Admin',
-            'email' => 'erwin.admin@omniterminal.com',
+            'name' => 'Super Admin',
+            'email' => 'erwinkho2@gmail.com',
             'password' => Hash::make('admin123'),
             'role' => 'super_admin',
             'tenant_id' => null, // Bebas akses ke semua
@@ -30,7 +30,7 @@ class DatabaseSeeder extends Seeder
         User::create([
             'tenant_id' => $tenant->id,
             'name' => 'Bos Tradyn',
-            'email' => 'owner@tradyn.com',
+            'email' => 'owner@gmail.com',
             'password' => Hash::make('admin123'),
             'role' => 'owner',
         ]);
