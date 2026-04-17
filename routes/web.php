@@ -25,7 +25,7 @@ Route::get('/', function () {
 });
 
 // Grup Route yang Memerlukan Login (Auth) & Verifikasi Email
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth'])->group(function () {
     
     // ----------------------------------------------------------------
     // 1. TRAFFIC COP (Sistem Redirect Otomatis Berdasarkan Role)

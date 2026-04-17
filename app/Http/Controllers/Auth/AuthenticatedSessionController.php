@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Inertia\Response;
+use Illuminate\Validation\ValidationException;
 
 class AuthenticatedSessionController extends Controller
 {
@@ -29,11 +30,28 @@ class AuthenticatedSessionController extends Controller
      */
     public function store(LoginRequest $request): RedirectResponse
     {
-        $request->authenticate();
+    $request->authenticate();
 
-        $request->session()->regenerate();
+    // Cek status tenant — khusus untuk user yang bukan super_admin
+    $user = auth()->user();
+    if ($user->tenant_id !== null) {
+        $tenant = $user->tenant; // Ambil data toko dari relasi User → Tenant
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        // Jika toko dinonaktifkan oleh Super Admin, tolak login
+        if (!$tenant || !$tenant->is_active) {
+            Auth::guard('web')->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            throw ValidationException::withMessages([
+                'email' => 'Akun Anda tidak dapat digunakan karena toko Anda sedang dinonaktifkan.',
+            ]);
+        }
+    }
+
+    $request->session()->regenerate();
+
+    return redirect()->intended(route('dashboard', absolute: false));
     }
 
     /**

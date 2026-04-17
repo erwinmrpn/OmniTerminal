@@ -42,14 +42,15 @@ class StaffController extends Controller
             'role' => 'required|in:manager,warehouse,marketing,finance',
         ]);
 
-        // 2. Simpan User Baru (Otomatis masuk ke tenant_id yang sama dengan Owner)
-        User::create([
-            'tenant_id' => auth()->user()->tenant_id,
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'role' => $request->role,
-        ]);
+    // 2. Simpan User Baru (Otomatis masuk ke tenant_id yang sama dengan Owner)
+    User::create([
+        'tenant_id' => auth()->user()->tenant_id,
+        'name' => $request->name,
+        'email' => $request->email,
+        'password' => Hash::make($request->password),
+        'role' => $request->role,
+        'email_verified_at' => now(), // Langsung verified — staff dibuat oleh owner, bukan self-register
+    ]);
 
         // 3. Kembalikan ke halaman sebelumnya dengan pesan sukses
         return redirect()->back()->with('success', 'Staf berhasil ditambahkan ke dalam sistem!');
