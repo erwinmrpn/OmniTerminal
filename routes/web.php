@@ -88,6 +88,8 @@ Route::middleware(['auth'])->group(function () {
     // Produk
     Route::get('/products', [ProductController::class, 'index'])->name('products.index');
     Route::post('/products', [ProductController::class, 'store'])->name('products.store');
+    Route::put('/products/{id}', [ProductController::class, 'update'])->name('products.update');
+    Route::delete('/products/{id}', [ProductController::class, 'destroy'])->name('products.destroy');
     
     // [BARU] Rute Placeholder untuk Menu Tambahan WMS (Akan dibuat Controller-nya nanti)
     Route::get('/warehouse/orders', function () { return "Halaman Daftar Orders"; })->name('warehouse.orders');
