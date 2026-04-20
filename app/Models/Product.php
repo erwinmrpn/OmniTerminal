@@ -27,4 +27,10 @@ class Product extends Model
                     ->withPivot('channel_sku', 'is_active')
                     ->withTimestamps();
     }
+
+    // Riwayat semua perubahan stok produk ini
+    public function stockMovements()
+    {
+        return $this->hasMany(StockMovement::class);
+    }
 }
