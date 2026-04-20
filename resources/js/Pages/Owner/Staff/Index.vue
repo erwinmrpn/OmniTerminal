@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted } from 'vue';
-import { Head, useForm, usePage } from '@inertiajs/vue3';
+import { Head, useForm, router } from '@inertiajs/vue3';
 import Sidebar from '@/Components/Sidebar.vue';
 import Navbar from '@/Components/Navbar.vue';
 
@@ -30,10 +30,36 @@ const form = useForm({
 
 const submit = () => {
     form.post(route('owner.staff.store'), {
-        onSuccess: () => {
-            form.reset(); // Kosongkan form setelah sukses
-            alert('Staf berhasil ditambahkan!'); // Tampilkan notifikasi sederhana
-        },
+        onSuccess: () => form.reset(),
+    });
+};
+
+// --- Logika Hapus Staf ---
+const deleteStaff = (id, name) => {
+    if (!confirm(`Hapus staf "${name}"? Tindakan ini tidak bisa dibatalkan.`)) return;
+    router.delete(route('owner.staff.destroy', id));
+};
+
+// --- Logika Edit Staf ---
+const showEditModal = ref(false);
+const editForm = useForm({
+    id: null,
+    name: '',
+    email: '',
+    role: 'warehouse',
+});
+
+const openEdit = (staff) => {
+    editForm.id    = staff.id;
+    editForm.name  = staff.name;
+    editForm.email = staff.email;
+    editForm.role  = staff.role;
+    showEditModal.value = true;
+};
+
+const submitEdit = () => {
+    editForm.put(route('owner.staff.update', editForm.id), {
+        onSuccess: () => { showEditModal.value = false; },
     });
 };
 </script>
@@ -139,7 +165,12 @@ const submit = () => {
                                                 {{ new Date(staff.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) }}
                                             </td>
                                             <td class="px-6 py-4 text-right">
-                                                <button class="text-gray-500 hover:text-red-400 transition-colors" title="Hapus Staf">
+                                                <!-- Tombol Edit -->
+                                                <button @click="openEdit(staff)" class="text-gray-500 hover:text-blue-400 transition-colors mr-3" title="Edit Staf">
+                                                    <svg class="w-5 h-5 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                                                </button>
+                                                <!-- Tombol Hapus -->
+                                                <button @click="deleteStaff(staff.id, staff.name)" class="text-gray-500 hover:text-red-400 transition-colors" title="Hapus Staf">
                                                     <svg class="w-5 h-5 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                                                 </button>
                                             </td>
@@ -157,6 +188,47 @@ const submit = () => {
 
                 </div>
             </main>
+        </div>
+    </div>
+
+    <!-- Modal Edit Staf -->
+    <div v-if="showEditModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+        <div class="bg-[#121317] border border-[#1f2128] rounded-xl p-6 w-full max-w-md shadow-xl">
+            <h3 class="text-sm font-bold text-white uppercase tracking-wider mb-6 border-b border-[#1f2128] pb-3">Edit Data Staf</h3>
+
+            <form @submit.prevent="submitEdit" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Nama Lengkap</label>
+                    <input v-model="editForm.name" type="text" class="w-full bg-[#0a0b0d] border border-[#2d2f36] rounded-md px-3 py-2 text-sm text-gray-300 focus:outline-none focus:border-[#8c52ff] focus:ring-1 focus:ring-[#8c52ff]" required>
+                    <div v-if="editForm.errors.name" class="text-red-500 text-xs mt-1">{{ editForm.errors.name }}</div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Alamat Email</label>
+                    <input v-model="editForm.email" type="email" class="w-full bg-[#0a0b0d] border border-[#2d2f36] rounded-md px-3 py-2 text-sm text-gray-300 focus:outline-none focus:border-[#8c52ff] focus:ring-1 focus:ring-[#8c52ff]" required>
+                    <div v-if="editForm.errors.email" class="text-red-500 text-xs mt-1">{{ editForm.errors.email }}</div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Role Akses</label>
+                    <select v-model="editForm.role" class="w-full bg-[#0a0b0d] border border-[#2d2f36] rounded-md px-3 py-2 text-sm text-gray-300 focus:outline-none focus:border-[#8c52ff] focus:ring-1 focus:ring-[#8c52ff] appearance-none" required>
+                        <option value="manager">Manager Operasional</option>
+                        <option value="warehouse">Admin Gudang (WMS)</option>
+                        <option value="marketing">Media Buyer / Marketing</option>
+                        <option value="finance">Admin Finance / Keuangan</option>
+                    </select>
+                    <div v-if="editForm.errors.role" class="text-red-500 text-xs mt-1">{{ editForm.errors.role }}</div>
+                </div>
+
+                <div class="flex gap-3 pt-2">
+                    <button type="button" @click="showEditModal = false" class="flex-1 bg-[#1f2128] hover:bg-[#2d2f36] text-gray-300 font-bold py-2.5 rounded-md text-sm transition-all">
+                        Batal
+                    </button>
+                    <button type="submit" :disabled="editForm.processing" class="flex-1 bg-gradient-to-r from-[#8c52ff] to-[#5e17eb] hover:from-[#7b42ea] hover:to-[#4a0dd6] text-white font-bold py-2.5 rounded-md text-sm transition-all disabled:opacity-50">
+                        {{ editForm.processing ? 'Menyimpan...' : 'Simpan Perubahan' }}
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </template>

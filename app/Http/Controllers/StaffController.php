@@ -55,4 +55,49 @@ class StaffController extends Controller
         // 3. Kembalikan ke halaman sebelumnya dengan pesan sukses
         return redirect()->back()->with('success', 'Staf berhasil ditambahkan ke dalam sistem!');
     }
+
+    /**
+    * Menghapus data staf dari database
+     */
+    public function destroy($id)
+    {
+    $tenantId = auth()->user()->tenant_id;
+
+    // Cari staf — pastikan milik tenant yang sama (keamanan)
+    $staff = User::where('id', $id)
+                 ->where('tenant_id', $tenantId)
+                 ->firstOrFail();
+
+    $staff->delete();
+
+    return redirect()->back()->with('success', 'Staf berhasil dihapus.');
+}
+
+    /**
+     * Mengupdate data staf (nama, email, role)
+     */
+    public function update(Request $request, $id)
+    {
+    $tenantId = auth()->user()->tenant_id;
+
+    // Cari staf — pastikan milik tenant yang sama (keamanan)
+    $staff = User::where('id', $id)
+                 ->where('tenant_id', $tenantId)
+                 ->firstOrFail();
+
+    // Validasi — email unique kecuali milik staf ini sendiri
+    $request->validate([
+        'name'  => 'required|string|max:255',
+        'email' => 'required|email|max:255|unique:users,email,' . $staff->id,
+        'role'  => 'required|in:manager,warehouse,marketing,finance',
+    ]);
+
+    $staff->update([
+        'name'  => $request->name,
+        'email' => $request->email,
+        'role'  => $request->role,
+    ]);
+
+    return redirect()->back()->with('success', 'Data staf berhasil diperbarui.');
+    }
 }

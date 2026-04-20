@@ -77,8 +77,10 @@ Route::middleware(['auth'])->group(function () {
     // ----------------------------------------------------------------
     // 4. MANAJEMEN STAF (KHUSUS OWNER & MANAGER)
     // ----------------------------------------------------------------
-    Route::get('/owner/staff', [StaffController::class, 'index'])->name('owner.staff.index');
-    Route::post('/owner/staff', [StaffController::class, 'store'])->name('owner.staff.store');
+   Route::get('/owner/staff', [StaffController::class, 'index'])->name('owner.staff.index');
+   Route::post('/owner/staff', [StaffController::class, 'store'])->name('owner.staff.store');
+   Route::delete('/owner/staff/{id}', [StaffController::class, 'destroy'])->name('owner.staff.destroy');
+   Route::put('/owner/staff/{id}', [StaffController::class, 'update'])->name('owner.staff.update');
 
     // ----------------------------------------------------------------
     // 5. FITUR OPERASIONAL GUDANG (WMS Core)
