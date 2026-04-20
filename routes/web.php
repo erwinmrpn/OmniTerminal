@@ -85,11 +85,9 @@ Route::middleware(['auth'])->group(function () {
     // ----------------------------------------------------------------
     // 5. FITUR OPERASIONAL GUDANG (WMS Core)
     // ----------------------------------------------------------------
-    // Produk
+    // Produk — data read-only dari API e-commerce, hanya threshold yang bisa diubah
     Route::get('/products', [ProductController::class, 'index'])->name('products.index');
-    Route::post('/products', [ProductController::class, 'store'])->name('products.store');
-    Route::put('/products/{id}', [ProductController::class, 'update'])->name('products.update');
-    Route::delete('/products/{id}', [ProductController::class, 'destroy'])->name('products.destroy');
+    Route::patch('/products/{id}/threshold', [ProductController::class, 'updateThreshold'])->name('products.threshold');
     
     // [BARU] Rute Placeholder untuk Menu Tambahan WMS (Akan dibuat Controller-nya nanti)
     Route::get('/warehouse/orders', function () { return "Halaman Daftar Orders"; })->name('warehouse.orders');

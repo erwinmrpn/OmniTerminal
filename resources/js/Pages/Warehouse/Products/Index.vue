@@ -6,7 +6,9 @@ import Navbar from '@/Components/Navbar.vue';
 
 // Props yang dikirim dari ProductController
 const props = defineProps({
-    products: Array
+    products:          Array,
+    channels:          Array,  // Daftar semua channel aktif (Lazada, Tokopedia, dll)
+    selectedChannelId: Number, // Channel yang sedang aktif dipilih
 });
 
 // Sidebar Logic
@@ -20,60 +22,39 @@ onMounted(() => {
     if (savedSidebar === "true") isSidebarCollapsed.value = true;
 });
 
-// --- Form Tambah Produk Baru ---
-const form = useForm({
-    sku:           '',
-    name:          '',
-    price:         '',
-    stock:         0,
-    threshold_min: 10, // Default minimum stok sebelum low stock alert
-    description:   '',
-});
+// --- Filter Channel ---
+// Pindah ke channel yang dipilih dengan reload halaman
+const selectChannel = (channelId) => {
+    router.get(route('products.index'), 
+        channelId ? { channel_id: channelId } : {},
+        { preserveState: false }
+    );
+};
 
-const submit = () => {
-    form.post(route('products.store'), {
-        onSuccess: () => form.reset(),
+// --- Edit Threshold Minimum Stok ---
+// Hanya field ini yang boleh diubah dari sistem (bukan dari platform e-commerce)
+const editingThresholdId = ref(null); // ID produk yang sedang diedit thresholdnya
+const thresholdForm = useForm({ threshold_min: 0 });
+
+const openEditThreshold = (product) => {
+    editingThresholdId.value  = product.id;
+    thresholdForm.threshold_min = product.threshold_min;
+};
+
+const saveThreshold = (productId) => {
+    thresholdForm.patch(route('products.threshold', productId), {
+        onSuccess: () => { editingThresholdId.value = null; },
     });
 };
 
-// --- Logika Hapus Produk ---
-const deleteProduct = (id, name) => {
-    if (!confirm(`Hapus produk "${name}"? Semua riwayat stok produk ini juga akan terhapus.`)) return;
-    router.delete(route('products.destroy', id));
+const cancelEditThreshold = () => {
+    editingThresholdId.value = null;
 };
 
-// --- Logika Edit Produk ---
-const showEditModal = ref(false);
-const editForm = useForm({
-    id:            null,
-    sku:           '',
-    name:          '',
-    price:         '',
-    stock:         0,
-    threshold_min: 10,
-    description:   '',
-});
-
-const openEdit = (product) => {
-    editForm.id            = product.id;
-    editForm.sku           = product.sku;
-    editForm.name          = product.name;
-    editForm.price         = product.price;
-    editForm.stock         = product.stock;
-    editForm.threshold_min = product.threshold_min;
-    editForm.description   = product.description ?? '';
-    showEditModal.value    = true;
-};
-
-const submitEdit = () => {
-    editForm.put(route('products.update', editForm.id), {
-        onSuccess: () => { showEditModal.value = false; },
-    });
-};
-
-// --- Helper Format Harga ---
-const formatRupiah = (value) => {
-    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(value);
+// --- Helper: ambil channel_sku produk dari channel yang aktif ---
+const getChannelSku = (product) => {
+    if (!product.product_channels || product.product_channels.length === 0) return '-';
+    return product.product_channels[0]?.channel_sku ?? '-';
 };
 </script>
 
@@ -88,188 +69,151 @@ const formatRupiah = (value) => {
 
             <main class="p-6 lg:p-8 flex-1 pb-20">
 
-                <div class="flex justify-between items-center mb-8">
+                <!-- Header -->
+                <div class="flex justify-between items-center mb-6">
                     <h2 class="text-xl font-bold text-white tracking-wide flex items-center gap-2">
                         <span class="p-1.5 rounded bg-gradient-to-br from-[#8c52ff] to-[#5ce1e6] text-white">
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
                         </span>
                         Master Produk
                     </h2>
+                    <span class="text-xs text-gray-500">
+                        {{ props.products.length }} produk ditemukan
+                    </span>
                 </div>
 
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Tab Filter Channel -->
+                <div class="flex gap-2 mb-6 flex-wrap">
+                    <!-- Tab "Semua" -->
+                    <button
+                        @click="selectChannel(null)"
+                        class="px-4 py-2 rounded-md text-xs font-bold uppercase tracking-wider transition-all"
+                        :class="!props.selectedChannelId
+                            ? 'bg-[#8c52ff] text-white'
+                            : 'bg-[#1f2128] text-gray-400 hover:text-white'"
+                    >
+                        Semua Platform
+                    </button>
 
-                    <!-- Form Tambah Produk -->
-                    <div class="lg:col-span-1">
-                        <div class="bg-[#121317] border border-[#1f2128] rounded-xl p-6 shadow-lg">
-                            <h3 class="text-sm font-bold text-white uppercase tracking-wider mb-6 border-b border-[#1f2128] pb-3">Tambah Produk Baru</h3>
-
-                            <form @submit.prevent="submit" class="space-y-4">
-                                <div>
-                                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">SKU Internal</label>
-                                    <input v-model="form.sku" type="text" class="w-full bg-[#0a0b0d] border border-[#2d2f36] rounded-md px-3 py-2 text-sm text-gray-300 focus:outline-none focus:border-[#8c52ff] focus:ring-1 focus:ring-[#8c52ff]" placeholder="Misal: PRD-001" required>
-                                    <div v-if="form.errors.sku" class="text-red-500 text-xs mt-1">{{ form.errors.sku }}</div>
-                                </div>
-
-                                <div>
-                                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Nama Produk</label>
-                                    <input v-model="form.name" type="text" class="w-full bg-[#0a0b0d] border border-[#2d2f36] rounded-md px-3 py-2 text-sm text-gray-300 focus:outline-none focus:border-[#8c52ff] focus:ring-1 focus:ring-[#8c52ff]" placeholder="Nama lengkap produk" required>
-                                    <div v-if="form.errors.name" class="text-red-500 text-xs mt-1">{{ form.errors.name }}</div>
-                                </div>
-
-                                <div>
-                                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Harga (Rp)</label>
-                                    <input v-model="form.price" type="number" min="0" class="w-full bg-[#0a0b0d] border border-[#2d2f36] rounded-md px-3 py-2 text-sm text-gray-300 focus:outline-none focus:border-[#8c52ff] focus:ring-1 focus:ring-[#8c52ff]" placeholder="0" required>
-                                    <div v-if="form.errors.price" class="text-red-500 text-xs mt-1">{{ form.errors.price }}</div>
-                                </div>
-
-                                <div class="grid grid-cols-2 gap-3">
-                                    <div>
-                                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Stok Awal</label>
-                                        <input v-model="form.stock" type="number" min="0" class="w-full bg-[#0a0b0d] border border-[#2d2f36] rounded-md px-3 py-2 text-sm text-gray-300 focus:outline-none focus:border-[#8c52ff] focus:ring-1 focus:ring-[#8c52ff]" required>
-                                        <div v-if="form.errors.stock" class="text-red-500 text-xs mt-1">{{ form.errors.stock }}</div>
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Min. Stok</label>
-                                        <input v-model="form.threshold_min" type="number" min="0" class="w-full bg-[#0a0b0d] border border-[#2d2f36] rounded-md px-3 py-2 text-sm text-gray-300 focus:outline-none focus:border-[#8c52ff] focus:ring-1 focus:ring-[#8c52ff]" required>
-                                        <div v-if="form.errors.threshold_min" class="text-red-500 text-xs mt-1">{{ form.errors.threshold_min }}</div>
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Deskripsi <span class="normal-case text-gray-600">(opsional)</span></label>
-                                    <textarea v-model="form.description" rows="3" class="w-full bg-[#0a0b0d] border border-[#2d2f36] rounded-md px-3 py-2 text-sm text-gray-300 focus:outline-none focus:border-[#8c52ff] focus:ring-1 focus:ring-[#8c52ff] resize-none" placeholder="Deskripsi singkat produk..."></textarea>
-                                </div>
-
-                                <button type="submit" :disabled="form.processing" class="w-full mt-2 bg-gradient-to-r from-[#8c52ff] to-[#5e17eb] hover:from-[#7b42ea] hover:to-[#4a0dd6] text-white font-bold py-2.5 rounded-md text-sm transition-all disabled:opacity-50">
-                                    {{ form.processing ? 'Menyimpan...' : 'Simpan Produk' }}
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-
-                    <!-- Tabel Daftar Produk -->
-                    <div class="lg:col-span-2">
-                        <div class="bg-[#121317] border border-[#1f2128] rounded-xl overflow-hidden shadow-lg h-full flex flex-col">
-                            <div class="p-6 border-b border-[#1f2128] bg-[#1a1b20]/50">
-                                <h3 class="text-sm font-bold text-white uppercase tracking-wider">Daftar Produk</h3>
-                            </div>
-
-                            <div class="overflow-x-auto">
-                                <table class="min-w-full text-left">
-                                    <thead class="bg-[#0a0b0d] text-gray-500 uppercase text-[10px] tracking-wider font-bold">
-                                        <tr>
-                                            <th class="px-6 py-4 border-b border-[#1f2128]">SKU & Nama</th>
-                                            <th class="px-6 py-4 border-b border-[#1f2128]">Harga</th>
-                                            <th class="px-6 py-4 border-b border-[#1f2128]">Stok</th>
-                                            <th class="px-6 py-4 border-b border-[#1f2128] text-right">Aksi</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="divide-y divide-[#1f2128]">
-                                        <tr v-for="product in props.products" :key="product.id" class="hover:bg-[#1a1b20]/50 transition-colors">
-                                            <td class="px-6 py-4">
-                                                <div class="font-bold text-gray-200 text-sm">{{ product.name }}</div>
-                                                <div class="text-xs text-gray-500 font-mono">{{ product.sku }}</div>
-                                            </td>
-                                            <td class="px-6 py-4 text-sm text-gray-300">
-                                                {{ formatRupiah(product.price) }}
-                                            </td>
-                                            <td class="px-6 py-4">
-                                                <!-- Warna stok berubah jika mendekati/di bawah threshold -->
-                                                <span class="text-sm font-bold"
-                                                    :class="{
-                                                        'text-red-400':    product.stock <= product.threshold_min,
-                                                        'text-yellow-400': product.stock > product.threshold_min && product.stock <= product.threshold_min * 2,
-                                                        'text-green-400':  product.stock > product.threshold_min * 2,
-                                                    }"
-                                                >{{ product.stock }}</span>
-                                                <span class="text-xs text-gray-600 ml-1">/ min {{ product.threshold_min }}</span>
-                                            </td>
-                                            <td class="px-6 py-4 text-right">
-                                                <!-- Tombol Edit -->
-                                                <button @click="openEdit(product)" class="text-gray-500 hover:text-blue-400 transition-colors mr-3" title="Edit Produk">
-                                                    <svg class="w-5 h-5 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-                                                </button>
-                                                <!-- Tombol Hapus -->
-                                                <button @click="deleteProduct(product.id, product.name)" class="text-gray-500 hover:text-red-400 transition-colors" title="Hapus Produk">
-                                                    <svg class="w-5 h-5 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                        <tr v-if="props.products.length === 0">
-                                            <td colspan="4" class="px-6 py-12 text-center text-gray-500 italic text-sm">
-                                                Belum ada produk yang terdaftar.
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-
+                    <!-- Tab per Channel -->
+                    <button
+                        v-for="channel in props.channels"
+                        :key="channel.id"
+                        @click="selectChannel(channel.id)"
+                        class="px-4 py-2 rounded-md text-xs font-bold uppercase tracking-wider transition-all"
+                        :class="props.selectedChannelId === channel.id
+                            ? 'bg-[#8c52ff] text-white'
+                            : 'bg-[#1f2128] text-gray-400 hover:text-white'"
+                    >
+                        {{ channel.name }}
+                    </button>
                 </div>
+
+                <!-- Tabel Produk -->
+                <div class="bg-[#121317] border border-[#1f2128] rounded-xl overflow-hidden shadow-lg">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full text-left">
+                            <thead class="bg-[#0a0b0d] text-gray-500 uppercase text-[10px] tracking-wider font-bold">
+                                <tr>
+                                    <th class="px-6 py-4 border-b border-[#1f2128]">No</th>
+                                    <th class="px-6 py-4 border-b border-[#1f2128]">SKU Platform</th>
+                                    <th class="px-6 py-4 border-b border-[#1f2128]">Nama Produk</th>
+                                    <th class="px-6 py-4 border-b border-[#1f2128]">Stok</th>
+                                    <!-- Kolom threshold bisa diedit, lainnya read-only -->
+                                    <th class="px-6 py-4 border-b border-[#1f2128]">Batas Min. Stok</th>
+                                    <th class="px-6 py-4 border-b border-[#1f2128]">Status</th>
+                                    <th class="px-6 py-4 border-b border-[#1f2128]">Diperbarui</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-[#1f2128]">
+                                <tr v-for="(product, index) in props.products" :key="product.id" class="hover:bg-[#1a1b20]/50 transition-colors">
+
+                                    <!-- No -->
+                                    <td class="px-6 py-4 text-xs text-gray-500">{{ index + 1 }}</td>
+
+                                    <!-- SKU dari platform e-commerce (read-only) -->
+                                    <td class="px-6 py-4 text-xs text-gray-400 font-mono">
+                                        {{ getChannelSku(product) }}
+                                    </td>
+
+                                    <!-- Nama Produk (read-only) -->
+                                    <td class="px-6 py-4">
+                                        <div class="text-sm text-gray-200">{{ product.name }}</div>
+                                        <div class="text-xs text-gray-600 font-mono mt-0.5">{{ product.sku }}</div>
+                                    </td>
+
+                                    <!-- Stok (read-only, warna berdasarkan threshold) -->
+                                    <td class="px-6 py-4">
+                                        <span class="text-sm font-bold"
+                                            :class="{
+                                                'text-red-400':    product.stock <= product.threshold_min,
+                                                'text-yellow-400': product.stock > product.threshold_min && product.stock <= product.threshold_min * 2,
+                                                'text-green-400':  product.stock > product.threshold_min * 2,
+                                            }"
+                                        >{{ product.stock }}</span>
+                                    </td>
+
+                                    <!-- Batas Min Stok (SATU-SATUNYA yang bisa diedit) -->
+                                    <td class="px-6 py-4">
+                                        <!-- Mode normal: tampilkan nilai + tombol edit -->
+                                        <div v-if="editingThresholdId !== product.id" class="flex items-center gap-2">
+                                            <span class="text-sm text-gray-300">{{ product.threshold_min }}</span>
+                                            <button @click="openEditThreshold(product)" class="text-gray-600 hover:text-[#8c52ff] transition-colors" title="Ubah Batas Minimum">
+                                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                                            </button>
+                                        </div>
+
+                                        <!-- Mode edit: input inline + tombol simpan/batal -->
+                                        <div v-else class="flex items-center gap-2">
+                                            <input
+                                                v-model="thresholdForm.threshold_min"
+                                                type="number" min="0"
+                                                class="w-16 bg-[#0a0b0d] border border-[#8c52ff] rounded px-2 py-1 text-sm text-gray-300 focus:outline-none"
+                                                @keyup.enter="saveThreshold(product.id)"
+                                                @keyup.escape="cancelEditThreshold"
+                                                autofocus
+                                            >
+                                            <!-- Simpan -->
+                                            <button @click="saveThreshold(product.id)" class="text-green-400 hover:text-green-300 transition-colors" title="Simpan">
+                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                                            </button>
+                                            <!-- Batal -->
+                                            <button @click="cancelEditThreshold" class="text-gray-500 hover:text-red-400 transition-colors" title="Batal">
+                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                                            </button>
+                                        </div>
+                                    </td>
+
+                                    <!-- Status Aktif/Nonaktif (read-only) -->
+                                    <td class="px-6 py-4">
+                                        <span class="text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider border"
+                                            :class="product.is_active
+                                                ? 'bg-green-500/10 text-green-400 border-green-500/20'
+                                                : 'bg-gray-500/10 text-gray-500 border-gray-500/20'"
+                                        >
+                                            {{ product.is_active ? 'Active' : 'Nonaktif' }}
+                                        </span>
+                                    </td>
+
+                                    <!-- Tanggal terakhir diperbarui (read-only) -->
+                                    <td class="px-6 py-4 text-xs text-gray-500 font-mono">
+                                        {{ new Date(product.updated_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) }}
+                                    </td>
+                                </tr>
+
+                                <!-- Empty state -->
+                                <tr v-if="props.products.length === 0">
+                                    <td colspan="7" class="px-6 py-16 text-center">
+                                        <div class="text-gray-600 text-sm italic">Belum ada produk dari platform ini.</div>
+                                        <div class="text-gray-700 text-xs mt-1">Hubungkan akun e-commerce terlebih dahulu untuk sinkronisasi produk.</div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
             </main>
         </div>
     </div>
-
-    <!-- Modal Edit Produk -->
-    <div v-if="showEditModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-        <div class="bg-[#121317] border border-[#1f2128] rounded-xl p-6 w-full max-w-md shadow-xl">
-            <h3 class="text-sm font-bold text-white uppercase tracking-wider mb-6 border-b border-[#1f2128] pb-3">Edit Produk</h3>
-
-            <form @submit.prevent="submitEdit" class="space-y-4">
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">SKU Internal</label>
-                    <input v-model="editForm.sku" type="text" class="w-full bg-[#0a0b0d] border border-[#2d2f36] rounded-md px-3 py-2 text-sm text-gray-300 focus:outline-none focus:border-[#8c52ff] focus:ring-1 focus:ring-[#8c52ff]" required>
-                    <div v-if="editForm.errors.sku" class="text-red-500 text-xs mt-1">{{ editForm.errors.sku }}</div>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Nama Produk</label>
-                    <input v-model="editForm.name" type="text" class="w-full bg-[#0a0b0d] border border-[#2d2f36] rounded-md px-3 py-2 text-sm text-gray-300 focus:outline-none focus:border-[#8c52ff] focus:ring-1 focus:ring-[#8c52ff]" required>
-                    <div v-if="editForm.errors.name" class="text-red-500 text-xs mt-1">{{ editForm.errors.name }}</div>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Harga (Rp)</label>
-                    <input v-model="editForm.price" type="number" min="0" class="w-full bg-[#0a0b0d] border border-[#2d2f36] rounded-md px-3 py-2 text-sm text-gray-300 focus:outline-none focus:border-[#8c52ff] focus:ring-1 focus:ring-[#8c52ff]" required>
-                    <div v-if="editForm.errors.price" class="text-red-500 text-xs mt-1">{{ editForm.errors.price }}</div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Stok</label>
-                        <input v-model="editForm.stock" type="number" min="0" class="w-full bg-[#0a0b0d] border border-[#2d2f36] rounded-md px-3 py-2 text-sm text-gray-300 focus:outline-none focus:border-[#8c52ff] focus:ring-1 focus:ring-[#8c52ff]" required>
-                        <div v-if="editForm.errors.stock" class="text-red-500 text-xs mt-1">{{ editForm.errors.stock }}</div>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Min. Stok</label>
-                        <input v-model="editForm.threshold_min" type="number" min="0" class="w-full bg-[#0a0b0d] border border-[#2d2f36] rounded-md px-3 py-2 text-sm text-gray-300 focus:outline-none focus:border-[#8c52ff] focus:ring-1 focus:ring-[#8c52ff]" required>
-                        <div v-if="editForm.errors.threshold_min" class="text-red-500 text-xs mt-1">{{ editForm.errors.threshold_min }}</div>
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Deskripsi <span class="normal-case text-gray-600">(opsional)</span></label>
-                    <textarea v-model="editForm.description" rows="3" class="w-full bg-[#0a0b0d] border border-[#2d2f36] rounded-md px-3 py-2 text-sm text-gray-300 focus:outline-none focus:border-[#8c52ff] focus:ring-1 focus:ring-[#8c52ff] resize-none"></textarea>
-                </div>
-
-                <div class="flex gap-3 pt-2">
-                    <button type="button" @click="showEditModal = false" class="flex-1 bg-[#1f2128] hover:bg-[#2d2f36] text-gray-300 font-bold py-2.5 rounded-md text-sm transition-all">
-                        Batal
-                    </button>
-                    <button type="submit" :disabled="editForm.processing" class="flex-1 bg-gradient-to-r from-[#8c52ff] to-[#5e17eb] hover:from-[#7b42ea] hover:to-[#4a0dd6] text-white font-bold py-2.5 rounded-md text-sm transition-all disabled:opacity-50">
-                        {{ editForm.processing ? 'Menyimpan...' : 'Simpan Perubahan' }}
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
 </template>
-
-<style scoped>
-select option {
-    background-color: #121317;
-    color: #e5e7eb;
-}
-</style>
