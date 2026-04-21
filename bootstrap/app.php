@@ -21,3 +21,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withExceptions(function (Exceptions $exceptions): void {
         //
     })->create();
+
+    $app->middleware([
+    \Illuminate\Http\Middleware\TrustProxies::class,
+]);
