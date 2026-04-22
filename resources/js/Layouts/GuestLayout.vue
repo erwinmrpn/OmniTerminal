@@ -1,22 +1,25 @@
 <script setup>
-import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 import { Link } from '@inertiajs/vue3';
 </script>
 
 <template>
-    <div
-        class="flex min-h-screen flex-col items-center bg-gray-100 pt-6 sm:justify-center sm:pt-0"
-    >
-        <div>
-            <Link href="/">
-                <ApplicationLogo class="h-20 w-20 fill-current text-gray-500" />
+    <div class="min-h-screen bg-[#0a0b0d] flex flex-col items-center justify-center px-4">
+
+        <!-- Logo & Branding -->
+        <div class="mb-8 text-center">
+            <Link href="/" class="flex flex-col items-center gap-3">
+                <!-- Logo OmniTerminal -->
+                <img src="/image/omni_logo.png" alt="OmniTerminal Logo" class="w-20 h-20 object-contain">
+                <!-- Nama Sistem -->
+                <span class="text-xl font-bold text-white tracking-wide">OmniTerminal</span>
             </Link>
+            <p class="text-xs text-gray-600 mt-2 tracking-widest uppercase">Warehouse Management System</p>
         </div>
 
-        <div
-            class="mt-6 w-full overflow-hidden bg-white px-6 py-4 shadow-md sm:max-w-md sm:rounded-lg"
-        >
+        <!-- Card Form -->
+        <div class="w-full max-w-md bg-[#121317] border border-[#1f2128] rounded-xl px-8 py-8 shadow-2xl">
             <slot />
         </div>
+
     </div>
 </template>
