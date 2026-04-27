@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted } from 'vue';
 import { Head, useForm, usePage, Link } from '@inertiajs/vue3';
 import Sidebar from '@/Components/Sidebar.vue';
 import Navbar from '@/Components/Navbar.vue';
@@ -53,14 +53,6 @@ const submitScan = () => {
     });
 };
 
-// Fungsi agar setiap kali klik di area layar, kursor otomatis ke input barcode
-const focusBarcode = () => {
-    // Cegah fokus jika user sedang mengklik input lain atau tombol
-    if (document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'BUTTON' && document.activeElement.tagName !== 'A') {
-        if (barcodeInput.value) barcodeInput.value.focus();
-    }
-};
-
 // --- LOGIKA AKORDION (Tugas & History) ---
 const isTasksOpen = ref(false);
 const isHistoryOpen = ref(false);
@@ -88,13 +80,6 @@ onMounted(() => {
 
     // Auto-focus barcode saat halaman dimuat
     if (barcodeInput.value) barcodeInput.value.focus();
-    // Tambahkan event listener click global untuk auto-focus
-    document.addEventListener('click', focusBarcode);
-});
-
-onUnmounted(() => {
-    // Bersihkan event listener saat pindah halaman
-    document.removeEventListener('click', focusBarcode);
 });
 </script>
 
