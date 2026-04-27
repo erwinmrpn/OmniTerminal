@@ -9,7 +9,7 @@ import { Link } from '@inertiajs/vue3';
         <div class="mb-8 text-center">
             <Link href="/" class="flex flex-col items-center gap-3">
                 <!-- Logo OmniTerminal -->
-                <img src="/image/omni_logo.png" alt="OmniTerminal Logo" class="w-20 h-20 object-contain">
+                <img src="/image/logo_nobg.png" alt="OmniTerminal Logo" class="w-20 h-20 object-contain">
                 <!-- Nama Sistem -->
                 <span class="text-xl font-bold text-white tracking-wide">OmniTerminal</span>
             </Link>

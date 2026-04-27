@@ -58,7 +58,7 @@ const menuItems = computed(() => {
             <div class="flex items-center overflow-hidden transition-all duration-300"
                  :class="props.isCollapsed ? 'gap-1' : 'gap-3'">
                 
-                <img src="/image/omni_logo.png" 
+                <img src="/image/logo_nobg.png" 
                      class="w-8 h-8 min-w-[32px] min-h-[32px] rounded object-contain flex-shrink-0" 
                      alt="OmniTerminal Logo" />
                 
