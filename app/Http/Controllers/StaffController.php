@@ -24,7 +24,7 @@ class StaffController extends Controller
                       ->latest()
                       ->get();
 
-        return Inertia::render('Owner/Staff/Index', [
+        return Inertia::render('Owner/Partials/Staff/Index', [
             'staffs' => $staffs
         ]);
     }

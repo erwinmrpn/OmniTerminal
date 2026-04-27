@@ -83,6 +83,7 @@ Route::middleware(['auth'])->group(function () {
    Route::post('/owner/staff', [StaffController::class, 'store'])->name('owner.staff.store');
    Route::delete('/owner/staff/{id}', [StaffController::class, 'destroy'])->name('owner.staff.destroy');
    Route::put('/owner/staff/{id}', [StaffController::class, 'update'])->name('owner.staff.update');
+   Route::get('/owner/integrations', function () {return Inertia::render('Owner/Partials/Integrations/Index');})->name('owner.integrations');
 
     // ----------------------------------------------------------------
     // 5. FITUR OPERASIONAL GUDANG (WMS Core)
