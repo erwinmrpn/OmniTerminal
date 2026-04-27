@@ -38,7 +38,8 @@ const allMenuItems = [
     { name: 'Manajemen Staf', route: 'owner.staff.index', icon: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z', roles: ['owner', 'manager'] },
     
     // Khusus Super Admin
-    { name: 'Kelola Tenant', route: 'dashboard', icon: 'M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z', roles: ['super_admin'] },
+    { name: 'Kelola Tenant', route: 'superadmin.tenants.index', icon: 'M19 21H5a2 2 0 01-2-2V7a2 2 0 012-2h4l2-3h4l2 3h4a2 2 0 012 2v12a2 2 0 01-2 2zM9 17v-2m3 2v-4m3 4v-6M3 7h18', roles: ['super_admin'] },
+    { name: 'Kelola User', route: 'superadmin.users.index', icon: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z', roles: ['super_admin'] },
 ];
 
 // Otomatis filter menu yang hanya boleh dilihat oleh Role user saat ini

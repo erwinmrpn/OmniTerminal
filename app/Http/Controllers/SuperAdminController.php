@@ -11,22 +11,31 @@ use Inertia\Inertia;
 class SuperAdminController extends Controller
 {
     /**
-     * Menampilkan Dashboard Super Admin beserta data Tenant dan Users
+     * Menampilkan Dashboard Super Admin — hanya statistik & chart placeholder
      */
     public function dashboard()
     {
-        // Ambil semua tenant beserta jumlah user di dalamnya
-        $tenants = Tenant::withCount('users')->latest()->get();
-        
-        // Ambil semua user (kecuali Super Admin) beserta nama Tenant-nya
-        $users = User::with('tenant')
-                     ->where('role', '!=', 'super_admin')
-                     ->latest()
-                     ->get();
+        // Hitung statistik tenant
+        $totalTenants    = Tenant::count();
+        $activeTenants   = Tenant::where('is_active', true)->count();
+        $inactiveTenants = $totalTenants - $activeTenants;
+
+        // Hitung total user (kecuali super admin)
+        $totalUsers = User::where('role', '!=', 'super_admin')->count();
+
+        // Hitung jumlah user per role
+        $usersByRole = User::where('role', '!=', 'super_admin')
+                          ->selectRaw('role, COUNT(*) as count')
+                          ->groupBy('role')
+                          ->pluck('count', 'role')
+                          ->toArray();
 
         return Inertia::render('SuperAdmin/Dashboard', [
-            'tenants' => $tenants,
-            'users' => $users,
+            'totalTenants'    => $totalTenants,
+            'activeTenants'   => $activeTenants,
+            'inactiveTenants' => $inactiveTenants,
+            'totalUsers'      => $totalUsers,
+            'usersByRole'     => $usersByRole,
         ]);
     }
 
@@ -77,5 +86,32 @@ class SuperAdminController extends Controller
         $user->update($dataToUpdate);
 
         return redirect()->back()->with('success', 'Data Login User berhasil diperbarui!');
+    }
+
+    /**
+    * Halaman Kelola Tenant
+     */
+    public function tenants()
+    {
+    $tenants = Tenant::withCount('users')->latest()->get();
+
+    return Inertia::render('SuperAdmin/Partials/TenantsPanel', [
+        'tenants' => $tenants,
+    ]);
+    }
+
+    /**
+    * Halaman Kelola User
+    */
+    public function users()
+    {
+    $users = User::with('tenant')
+                 ->where('role', '!=', 'super_admin')
+                 ->latest()
+                 ->get();
+
+    return Inertia::render('SuperAdmin/Partials/UsersPanel', [
+        'users' => $users,
+    ]);
     }
 }

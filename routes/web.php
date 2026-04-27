@@ -48,6 +48,8 @@ Route::middleware(['auth'])->group(function () {
     // 2. HALAMAN DASHBOARD & MANAJEMEN SUPER ADMIN
     // ----------------------------------------------------------------
     Route::get('/super-admin/dashboard', [SuperAdminController::class, 'dashboard'])->name('superadmin.dashboard');
+    Route::get('/super-admin/tenants', [SuperAdminController::class, 'tenants'])->name('superadmin.tenants.index');
+    Route::get('/super-admin/users', [SuperAdminController::class, 'users'])->name('superadmin.users.index');
     Route::put('/super-admin/tenants/{id}', [SuperAdminController::class, 'updateTenant'])->name('superadmin.tenants.update');
     Route::put('/super-admin/users/{id}', [SuperAdminController::class, 'updateUser'])->name('superadmin.users.update');
 
