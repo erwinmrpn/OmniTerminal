@@ -26,7 +26,9 @@ const allMenuItems = [
     // Finance
     { name: 'Finance Dashboard', route: 'finance.dashboard', icon: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z', roles: ['finance'] },
 
-    // Fitur Operasional Gudang (WMS)
+    // ---------------------------------------------------------
+    // FITUR OPERASIONAL GUDANG (WMS)
+    // ---------------------------------------------------------
     { name: 'Orders', route: 'warehouse.orders', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4', roles: ['owner', 'manager', 'warehouse'] },
     { name: 'Produk', route: 'products.index', icon: 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4', roles: ['owner', 'manager', 'warehouse'] },
     { name: 'Stok Gudang', route: 'warehouse.stock', icon: 'M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4', roles: ['owner', 'manager', 'warehouse'] },
@@ -54,9 +56,12 @@ const menuItems = computed(() => {
         class="fixed left-0 top-0 h-screen bg-[#0a0b0d] border-r border-[#1f2128] flex flex-col z-50 transition-all duration-300 ease-in-out"
         :class="props.isCollapsed ? 'w-[72px]' : 'w-64'"
     >
-        <div class="h-16 flex items-center relative flex-shrink-0 transition-all duration-300"
-             :class="props.isCollapsed ? 'px-0.5 justify-center' : 'px-4 justify-between'">
-
+        <!-- Header — seluruh area ini bisa diklik untuk toggle sidebar -->
+        <div
+            class="h-16 flex items-center relative flex-shrink-0 transition-all duration-300 cursor-pointer select-none"
+            :class="props.isCollapsed ? 'px-0.5 justify-center' : 'px-4 justify-between'"
+            @click="emit('toggle')"
+        >
             <div class="flex items-center overflow-hidden transition-all duration-300"
                  :class="props.isCollapsed ? 'gap-1' : 'gap-3'">
 
@@ -72,18 +77,19 @@ const menuItems = computed(() => {
                 </span>
             </div>
 
-            <button
-                @click="emit('toggle')"
-                class="w-8 h-8 min-w-[32px] min-h-[32px] flex items-center justify-center p-0 rounded-md text-gray-400 hover:text-white hover:bg-[#1a1b20] transition-colors cursor-pointer flex-shrink-0"
+            <!-- Ikon toggle (visual only, klik sudah di-handle parent div) -->
+            <div
+                class="w-8 h-8 min-w-[32px] min-h-[32px] flex items-center justify-center rounded-md text-gray-400 hover:text-white hover:bg-[#1a1b20] transition-colors flex-shrink-0"
                 :title="props.isCollapsed ? 'Expand sidebar' : 'Close sidebar'"
             >
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <rect x="4" y="4" width="16" height="16" rx="2" stroke-width="2" />
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 4v16" />
                 </svg>
-            </button>
+            </div>
         </div>
 
+        <!-- Nav — klik link tidak trigger toggle -->
         <nav class="flex-1 py-6 px-2 space-y-1 overflow-y-auto overflow-x-hidden">
             <template v-for="item in menuItems" :key="item.name">
                 <Link
@@ -123,6 +129,7 @@ const menuItems = computed(() => {
             </template>
         </nav>
 
+        <!-- Logout -->
         <div class="p-4 flex-shrink-0 border-t border-[#1f2128]">
             <Link
                 :href="route('logout')"
