@@ -2,8 +2,7 @@
 import { Head, Link } from '@inertiajs/vue3';
 
 defineProps({
-    canLogin:    { type: Boolean },
-    canRegister: { type: Boolean },
+    canLogin: { type: Boolean },
 });
 </script>
 
@@ -38,13 +37,6 @@ defineProps({
                         class="text-sm font-bold text-gray-400 hover:text-white transition-colors px-4 py-2"
                     >
                         Log In
-                    </Link>
-                    <Link
-                        v-if="canRegister"
-                        :href="route('register')"
-                        class="bg-[#8c52ff] hover:bg-[#7b42ea] text-white text-sm font-bold px-5 py-2 rounded-lg transition-all"
-                    >
-                        Register
                     </Link>
                 </template>
             </div>
@@ -84,11 +76,10 @@ defineProps({
                         Masuk ke Sistem →
                     </Link>
                     <Link
-                        v-if="canRegister"
-                        :href="route('register')"
+                        :href="route('consultation.create')"
                         class="bg-[#1a1b20] hover:bg-[#2d2f36] border border-[#2d2f36] text-gray-300 font-bold px-8 py-3 rounded-xl text-sm transition-all"
                     >
-                        Daftar Tenant
+                        Konsultasi
                     </Link>
                 </template>
             </div>

@@ -28,6 +28,16 @@ const submit = () => {
     <GuestLayout>
         <Head title="Log in - OmniTerminal" />
 
+        <!-- Tombol Back ke Welcome -->
+        <div class="mb-5">
+            <Link href="/" class="inline-flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-300 transition-colors">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                </svg>
+                Kembali ke Home
+            </Link>
+        </div>
+
         <div class="mb-6 text-center">
             <h2 class="text-xl font-bold text-white">Selamat Datang</h2>
             <p class="text-sm text-gray-500 mt-1">Masuk ke akun OmniTerminal kamu</p>

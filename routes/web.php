@@ -6,6 +6,7 @@ use App\Http\Controllers\StaffController;
 use App\Http\Controllers\SuperAdminController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ConsultationController;
 use Inertia\Inertia;
 
 /*
@@ -52,6 +53,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/super-admin/users', [SuperAdminController::class, 'users'])->name('superadmin.users.index');
     Route::put('/super-admin/tenants/{id}', [SuperAdminController::class, 'updateTenant'])->name('superadmin.tenants.update');
     Route::put('/super-admin/users/{id}', [SuperAdminController::class, 'updateUser'])->name('superadmin.users.update');
+    Route::get('/super-admin/consultations', [ConsultationController::class, 'index'])->name('superadmin.consultations.index');
+    Route::delete('/super-admin/consultations/{id}', [ConsultationController::class, 'destroy'])->name('superadmin.consultations.destroy');
+    Route::get('/register-tenant', function () { return Inertia::render('Auth/Register');})->name('superadmin.register.tenant');
 
     // ----------------------------------------------------------------
     // 3. HALAMAN DASHBOARD SPESIFIK UNTUK MASING-MASING ROLE
@@ -105,6 +109,10 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
+
+// Consultation (Public)
+Route::get('/consultation', [ConsultationController::class, 'create'])->name('consultation.create');
+Route::post('/consultation', [ConsultationController::class, 'store'])->name('consultation.store');
 
 // Load Route Autentikasi Bawaan Laravel Breeze
 require __DIR__.'/auth.php';
