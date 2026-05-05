@@ -57,9 +57,10 @@ onMounted(() => {
                     </div>
 
                     <!-- Baris bawah: Hapus Akun (separuh lebar) -->
-                    <div class="lg:w-1/2 bg-[#121317] border border-red-900/30 rounded-xl p-6 shadow-lg">
+                    <div v-if="$page.props.auth.user.role !== 'super_admin'" class="lg:w-1/2 bg-[#121317] border border-red-900/30 rounded-xl p-6 shadow-lg">
                         <DeleteUserForm />
                     </div>
+
                 </div>
 
             </main>
