@@ -114,5 +114,9 @@ Route::middleware('auth')->group(function () {
 Route::get('/consultation', [ConsultationController::class, 'create'])->name('consultation.create');
 Route::post('/consultation', [ConsultationController::class, 'store'])->name('consultation.store');
 
+// Footer 
+Route::get('/terms-of-service', function () {return Inertia::render('TermsOfService');})->name('terms.service');
+Route::get('/privacy-policy', function () {return Inertia::render('PrivacyPolicy');})->name('privacy.policy');
+
 // Load Route Autentikasi Bawaan Laravel Breeze
 require __DIR__.'/auth.php';

@@ -1,4 +1,5 @@
 <script setup>
+import Footer from '@/Components/Footer.vue';
 import { Head, Link } from '@inertiajs/vue3';
 
 defineProps({
@@ -123,9 +124,7 @@ defineProps({
         </section>
 
         <!-- Footer -->
-        <footer class="relative z-10 border-t border-[#1f2128] py-5 text-center">
-            <p class="text-xs text-gray-600">&copy; 2026 OmniTerminal. All rights reserved.</p>
-        </footer>
+        <Footer />
 
     </div>
 </template>
